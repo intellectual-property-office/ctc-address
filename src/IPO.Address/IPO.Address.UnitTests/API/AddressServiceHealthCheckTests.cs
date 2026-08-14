@@ -111,5 +111,23 @@ namespace IPO.Address.UnitTests.API
             Assert.IsNull(actual.Exception);
             _mockAddressService.Verify();
         }
+
+        [TestMethod]
+        public async Task ReadyReturnsUnavailableIfResultIsNull()
+        {
+            // Arrange
+            _mockAddressService!.Setup(e => e.GetAddressesAsync(_countryCode, _searchTerm))
+                                .ReturnsAsync((IEnumerable<AddressResult>?)null!)
+                                .Verifiable();
+
+            // Act
+            var actual = await _uut!.CheckHealthAsync(null!, CancellationToken.None);
+
+            // Assert
+            Assert.IsNotNull(actual);
+            Assert.AreEqual("Address provider is not available", actual.Description);
+            Assert.AreEqual(HealthStatus.Unhealthy, actual.Status);
+            _mockAddressService.Verify();
+        }
     }
 }
